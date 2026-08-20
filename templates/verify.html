@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Verify Email · NEP-TIME{% endblock %}
+{% block content %}<div class="auth-wrap"><div class="auth-card">
+<h2>Verify your email</h2><p class="text-muted">OTP sent to <b>{{email}}</b>.</p>
+<form method="post"><input name="otp" maxlength="6" inputmode="numeric" class="form-control form-control-lg text-center letter-space mb-3" placeholder="000000" required>
+<input name="password" type="password" class="form-control mb-3" placeholder="Create password" minlength="8" required>
+<button class="btn btn-leaf w-100">Verify & Create Profile</button></form></div></div>{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Student Dashboard · NEP-TIME{% endblock %}
+{% block content %}<div class="mb-4"><span class="eyebrow">STUDENT WORKSPACE</span><h1>Good day, {{user.name}}</h1><p class="text-muted">{{user.program}} · Semester {{user.semester}} · {{user.student_group}}</p></div>
+<div class="card p-4 mb-4"><h4>My Timetable</h4><div class="table-responsive"><table class="table"><thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Faculty</th><th>Room</th></tr></thead><tbody>
+{% for e in entries %}<tr><td>{{days[e.day_index]}}</td><td>{{lessions[e.period][0]}}–{{lessions[e.period][1]}}</td><td><b>{{e.code}}</b> {{e.name}}</td><td>{{e.faculty_name|default('—')}}</td><td>{{e.room_name|default('—')}}</td></tr>{% else %}<tr><td colspan="5">No timetable generated.</td></tr>{% endfor %}
+</tbody></table></div></div>
+<a class="btn btn-leaf" href="{{url_for('student_attendance')}}">View Attendance Analytics</a>
+{% endblock %}

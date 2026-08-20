@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Create Profile · NEP-TIME{% endblock %}
+{% block content %}<div class="auth-wrap"><div class="auth-card">
+<h2>Create your profile</h2><p class="text-muted">Students and teachers can register with verified email.</p>
+<form method="post">
+<div class="row g-3"><div class="col-md-6"><label>Name</label><input name="name" class="form-control" required></div>
+<div class="col-md-6"><label>Email</label><input type="email" name="email" class="form-control" required></div>
+<div class="col-md-6"><label>Account</label><select name="role" class="form-select"><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
+<div class="col-md-6"><label>Semester</label><input type="number" name="semester" value="1" min="1" max="8" class="form-control"></div>
+<div class="col-md-6"><label>Program</label><input name="program" class="form-control" value="Electrical & Computer Engineering"></div>
+<div class="col-md-6"><label>Student Group</label><input name="student_group" class="form-control" placeholder="ECE-6A"></div></div>
+<button class="btn btn-leaf w-100 mt-4">Send OTP</button></form></div></div>{% endblock %}

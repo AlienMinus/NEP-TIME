@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Login · NEP-TIME{% endblock %}
+{% block content %}<div class="auth-wrap"><div class="auth-card">
+<div class="text-center mb-4"><div class="logo-mark">N</div><h2>Welcome back</h2><p class="text-muted">Sign in to your academic workspace.</p></div>
+<form method="post"><label>Email</label><input class="form-control mb-3" type="email" name="email" required>
+<label>Password</label><input class="form-control mb-3" type="password" name="password" required>
+<button class="btn btn-leaf w-100">Sign in</button></form>
+<div class="divider">OR</div><a class="btn btn-outline-dark w-100" href="{{url_for('google_login')}}"><i class="bi bi-google me-2"></i>Continue with Google</a>
+<p class="text-center mt-3 mb-0">New user? <a href="{{url_for('register')}}">Create a profile</a></p>
+</div></div>{% endblock %}

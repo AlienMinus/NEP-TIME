@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}Profile · NEP-TIME{% endblock %}
+{% block content %}<div class="row g-4"><div class="col-lg-4"><div class="profile-card text-center">
+{% if user.avatar %}<img src="{{user.avatar}}" class="avatar">{% else %}<div class="avatar placeholder-avatar"><i class="bi bi-person"></i></div>{% endif %}
+<h3>{{user.name}}</h3><p class="text-muted">{{user.email}}</p><span class="badge bg-light text-dark">{{user.role|capitalize}}</span>
+</div></div><div class="col-lg-8"><div class="card p-4"><h3>Edit profile</h3>
+<form method="post" enctype="multipart/form-data" class="row g-3">
+<div class="col-md-6"><label>Name</label><input name="name" value="{{user.name}}" class="form-control"></div>
+<div class="col-md-6"><label>Phone</label><input name="phone" value="{{user.phone|default('')}}" class="form-control"></div>
+<div class="col-md-6"><label>Program</label><input name="program" value="{{user.program|default('')}}" class="form-control"></div>
+<div class="col-md-3"><label>Semester</label><input name="semester" type="number" value="{{user.semester|default(1)}}" class="form-control"></div>
+<div class="col-md-3"><label>Group</label><input name="student_group" value="{{user.student_group|default('')}}" class="form-control"></div>
+<div class="col-12"><label>Profile image</label><input type="file" name="avatar" accept="image/*" class="form-control"></div>
+<div class="col-12"><button class="btn btn-leaf">Save changes</button></div></form></div></div></div>{% endblock %}

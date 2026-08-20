@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}NEP-TIME · ABIT{% endblock %}
+{% block content %}
+<section class="hero-leaf rounded-4 p-5">
+<div class="row align-items-center"><div class="col-lg-8">
+<span class="eyebrow">ABIT · NEP 2020 · MULTIDISCIPLINARY</span>
+<h1 class="display-4 fw-bold mt-2">Intelligent Academic Scheduling.</h1>
+<p class="lead">A student-centric timetable, attendance and academic resource platform built for multidisciplinary engineering education.</p>
+<a class="btn btn-leaf btn-lg" href="{{url_for('login')}}">Enter NEP-TIME</a>
+<a class="btn btn-outline-dark btn-lg ms-2" href="{{url_for('register')}}">Create Profile</a>
+</div><div class="col-lg-4"><div class="hero-card"><i class="bi bi-calendar2-week"></i><h4>ABIT Standard</h4><p>08:15 AM – 02:15 PM<br>6 × 55-minute lessons<br>Smart lunch & lab scheduling</p></div></div></div>
+</section>
+{% endblock %}
