@@ -211,36 +211,128 @@ def logout():
 
 @app.route("/auth/google")
 def google_login():
+
     if not google:
-        flash("Google OAuth is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.", "warning")
+        flash(
+            "Google OAuth is not configured. "
+            "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.",
+            "warning"
+        )
         return redirect(url_for("login"))
-    redirect_uri = url_for("google_callback", _external=True)
+
+    redirect_uri = os.getenv(
+        "GOOGLE_REDIRECT_URI",
+        url_for("google_callback", _external=True)
+    )
+
     return google.authorize_redirect(redirect_uri)
+
 
 @app.route("/auth/google/callback")
 def google_callback():
+
     if not google:
         return redirect(url_for("login"))
-    token = google.authorize_access_token()
-    info = token.get("userinfo")
-    if not info:
-        info = google.userinfo()
-    email = info["email"].lower()
-    u = users().find_one({"email": email})
-    if not u:
-        result = users().insert_one({
-            "email": email, "name": info.get("name", email.split("@")[0]),
-            "role": "student", "email_verified": True, "avatar": info.get("picture",""),
-            "program": "", "semester": 1, "student_group": "", "google_id": info["sub"],
-            "created_at": datetime.utcnow()
+
+    try:
+        # Exchange authorization code for Google tokens
+        token = google.authorize_access_token()
+
+        # Get Google user information
+        info = token.get("userinfo")
+
+        if not info:
+            info = google.userinfo()
+
+        if not info:
+            flash("Unable to retrieve Google account information.", "danger")
+            return redirect(url_for("login"))
+
+        email = info["email"].lower().strip()
+
+        # Check whether this Google account already exists
+        u = users().find_one({"email": email})
+
+        if not u:
+
+            # New Google user
+            result = users().insert_one({
+                "email": email,
+                "name": info.get(
+                    "name",
+                    email.split("@")[0]
+                ),
+
+                # New Google accounts default to student
+                "role": "student",
+
+                "email_verified": True,
+
+                "avatar": info.get(
+                    "picture",
+                    ""
+                ),
+
+                "program": "",
+                "semester": 1,
+                "student_group": "",
+
+                "google_id": info["sub"],
+
+                "created_at": datetime.utcnow()
+            })
+
+            uid = result.inserted_id
+            role = "student"
+
+        else:
+
+            # Existing account
+            uid = u["_id"]
+            role = u.get("role", "student")
+
+            # Update Google profile picture
+            users().update_one(
+                {"_id": uid},
+                {
+                    "$set": {
+                        "avatar": info.get(
+                            "picture",
+                            u.get("avatar", "")
+                        ),
+                        "google_id": info["sub"],
+                        "email_verified": True
+                    }
+                }
+            )
+
+        # Create application session
+        session.clear()
+
+        session.update({
+            "user_id": str(uid),
+            "role": role,
+            "email": email,
+            "name": info.get(
+                "name",
+                email.split("@")[0]
+            )
         })
-        uid = result.inserted_id
-        role = "student"
-    else:
-        uid, role = u["_id"], u["role"]
-        users().update_one({"_id":uid}, {"$set":{"avatar":info.get("picture",u.get("avatar",""))}})
-    session.update(user_id=str(uid), role=role, email=email, name=info.get("name",""))
-    return redirect(url_for("dashboard"))
+
+        # Role-based dashboard
+        return redirect(url_for("dashboard"))
+
+    except Exception as e:
+
+        print("[GOOGLE OAUTH ERROR]", repr(e))
+
+        flash(
+            "Google authentication failed. "
+            "Please try again.",
+            "danger"
+        )
+
+        return redirect(url_for("login"))
 
 @app.route("/dashboard")
 @login_required()
