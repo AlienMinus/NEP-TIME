@@ -1,9 +1,52 @@
-{% extends "base.html" %}{% block title %}Login · NEP-TIME{% endblock %}
-{% block content %}<div class="auth-wrap"><div class="auth-card">
-<div class="text-center mb-4"><div class="logo-mark">N</div><h2>Welcome back</h2><p class="text-muted">Sign in to your academic workspace.</p></div>
-<form method="post"><label>Email</label><input class="form-control mb-3" type="email" name="email" required>
-<label>Password</label><input class="form-control mb-3" type="password" name="password" required>
-<button class="btn btn-leaf w-100">Sign in</button></form>
-<div class="divider">OR</div><a class="btn btn-outline-dark w-100" href="{{url_for('google_login')}}"><i class="bi bi-google me-2"></i>Continue with Google</a>
-<p class="text-center mt-3 mb-0">New user? <a href="{{url_for('register')}}">Create a profile</a></p>
-</div></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Sign In · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="auth-wrap py-4">
+    <div class="auth-card p-4 p-md-5 rounded-4 shadow-md bg-white">
+        <div class="text-center mb-4">
+            <div class="logo-mark mb-3 shadow-xs">
+                <i class="bi bi-leaf-fill"></i>
+            </div>
+            <h2 class="fw-bold text-dark mb-1">Welcome back</h2>
+            <p class="text-muted small">Sign in to your ABIT academic workspace</p>
+        </div>
+
+        <form method="post" class="mb-3">
+            <div class="mb-3">
+                <label class="form-label fw-semibold text-muted small">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                    <input type="email" name="email" class="form-control bg-light border-start-0" placeholder="name@abit.edu.in" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold text-muted small">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control bg-light border-start-0" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-leaf w-100 py-2 rounded-3 fw-semibold shadow-sm">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+            </button>
+        </form>
+
+        <div class="divider d-flex align-items-center text-muted small my-3">
+            <span class="flex-grow-1 border-bottom"></span>
+            <span class="px-3">OR</span>
+            <span class="flex-grow-1 border-bottom"></span>
+        </div>
+
+        <a class="btn btn-outline-dark w-100 py-2 rounded-3 fw-semibold d-flex align-items-center justify-content-center gap-2 mb-3" href="{{ url_for('auth.google_login') }}">
+            <i class="bi bi-google text-danger"></i> Continue with Google
+        </a>
+
+        <p class="text-center text-muted small mb-0">
+            Don't have a profile? <a href="{{ url_for('auth.register') }}" class="text-leaf fw-bold text-decoration-none">Create one here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

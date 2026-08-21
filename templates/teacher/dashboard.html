@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}Teacher Workspace · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Teacher Header Bar -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                {% if teacher.avatar %}
+                    <img src="{{ teacher.avatar }}" class="avatar rounded-circle shadow-xs" style="width: 68px; height: 68px; object-fit: cover;" alt="{{ teacher.name }}">
+                {% else %}
+                    <div class="rounded-circle bg-leaf text-white d-flex align-items-center justify-content-center fw-bold fs-3" style="width: 68px; height: 68px;">
+                        {{ teacher.name[:1] }}
+                    </div>
+                {% endif %}
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h3 class="fw-bold text-dark mb-0">{{ teacher.name }}</h3>
+                        <span class="badge bg-leaf-subtle text-leaf-dark px-3 py-1 rounded-pill text-uppercase">{{ teacher.designation or 'Faculty' }}</span>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-1">
+                        <span><i class="bi bi-person-badge text-leaf me-1"></i><strong>Employee ID:</strong> {{ teacher.employee_id or 'NOT ASSIGNED' }}</span>
+                        <span><i class="bi bi-envelope text-leaf me-1"></i>{{ teacher.email }}</span>
+                        <span><i class="bi bi-building text-leaf me-1"></i>{{ teacher.program or 'ABIT Engineering' }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="stat-pill px-3 py-2 rounded-3 bg-leaf-light border text-center">
+                    <small class="text-muted d-block" style="font-size: 0.7rem;">Weekly Classes</small>
+                    <strong class="text-leaf fs-5">{{ schedule.total_classes }} Slots</strong>
+                </div>
+                <div class="stat-pill px-3 py-2 rounded-3 bg-light border text-center">
+                    <small class="text-muted d-block" style="font-size: 0.7rem;">Leisure / Free</small>
+                    <strong class="text-dark fs-5">{{ schedule.total_leisure }} Slots</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: Draggable Subject Competency Bubbles -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="eyebrow text-uppercase">FACULTY TEACHING PREFERENCES</span>
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-bubbles text-leaf me-2"></i>Subject Competency Bubbles</h5>
+                <p class="text-muted small mb-0">Drag and drop subject bubbles from the pool below into your competency zone to express the subjects you can teach.</p>
+            </div>
+            <span id="bubbleSaveStatus" class="badge bg-leaf-subtle text-leaf-dark px-3 py-2 rounded-pill d-none">
+                <i class="bi bi-check2 me-1"></i> Preferences Synced
+            </span>
+        </div>
+
+        <!-- Drop Zone: Subjects I Can Teach -->
+        <div class="mb-4">
+            <label class="form-label fw-semibold text-dark small"><i class="bi bi-check2-circle text-leaf me-1"></i>Subjects I Can Teach (My Drop Zone):</label>
+            <div id="teacherCompetencyDropzone" class="p-3 rounded-4 border-dashed bg-light-subtle d-flex flex-wrap gap-2 align-items-center min-h-80 transition">
+                {% for code in my_competencies %}
+                    <div class="competency-bubble-chip d-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-leaf text-white shadow-xs" data-code="{{ code }}">
+                        <i class="bi bi-award-fill"></i>
+                        <span class="fw-semibold small">{{ code }}</span>
+                        <button type="button" class="btn-close btn-close-white btn-sm" onclick="removeCompetencyBubble('{{ code }}')"></button>
+                    </div>
+                {% else %}
+                    <div class="drop-placeholder text-muted small py-2 px-3 w-100 text-center" id="competencyEmptyPlaceholder">
+                        <i class="bi bi-arrow-down-circle text-leaf me-1"></i> Drag and drop subject bubbles here from the pool below
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Available Subjects Pool -->
+        <div>
+            <label class="form-label fw-semibold text-muted small"><i class="bi bi-collection me-1"></i>Available Subject Bubbles Pool (Drag into your zone above):</label>
+            <div class="d-flex flex-wrap gap-2 p-3 bg-light rounded-3 border" id="subjectsPool">
+                {% for subj in all_subjects_pool %}
+                    <div class="subject-drag-bubble px-3 py-2 rounded-pill bg-white text-dark border shadow-xs cursor-grab d-flex align-items-center gap-2"
+                         draggable="true"
+                         data-code="{{ subj.code }}"
+                         data-name="{{ subj.name }}">
+                        <i class="bi bi-grip-vertical text-muted"></i>
+                        <strong class="text-leaf small">{{ subj.code }}</strong>
+                        <span class="text-muted small">{{ subj.name }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Weekly Schedule & Leisure Periods -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+            <div>
+                <span class="eyebrow text-uppercase">WEEKLY TIMETABLE MATRIX</span>
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar2-week text-leaf me-2"></i>My Class Schedules & Leisure Periods</h5>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-leaf text-white px-3 py-2 rounded-pill"><i class="bi bi-mortarboard me-1"></i>Assigned Class</span>
+                <span class="badge bg-leaf-light text-leaf border px-3 py-2 rounded-pill"><i class="bi bi-cup-hot me-1"></i>Leisure / Free Period</span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center timetable-grid mb-0">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th style="width: 120px;" class="bg-light">Day</th>
+                        {% for p_meta in periods_other %}
+                        <th>
+                            <div class="fw-bold text-dark">Period {{ p_meta.period }}</div>
+                            <small class="text-muted" style="font-size: 0.72rem;">{{ p_meta.start }} – {{ p_meta.end }}</small>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in schedule.weekly_matrix %}
+                    <tr>
+                        <td class="fw-bold text-dark bg-light text-start ps-3">{{ day.day_name }}</td>
+                        {% for slot in day.slots %}
+                            {% if slot.is_leisure %}
+                                <td class="p-2 leisure-slot-cell bg-leaf-light">
+                                    <div class="p-2 rounded-3 text-center">
+                                        <i class="bi bi-cup-hot-fill text-leaf fs-6 d-block mb-1"></i>
+                                        <strong class="text-leaf-dark d-block" style="font-size: 0.75rem;">Leisure Period</strong>
+                                        <small class="text-muted" style="font-size: 0.68rem;">{{ slot.start_time }} – {{ slot.end_time }}</small>
+                                    </div>
+                                </td>
+                            {% else %}
+                                <td class="p-2 teaching-slot-cell bg-white border-leaf">
+                                    <div class="p-2 rounded-3 bg-leaf-subtle border text-start">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-leaf text-white" style="font-size: 0.65rem;">{{ slot.type|upper }}</span>
+                                            <span class="badge bg-white text-dark border" style="font-size: 0.65rem;">{{ slot.room_name or 'Room' }}</span>
+                                        </div>
+                                        <strong class="d-block text-dark small">{{ slot.course_code }}</strong>
+                                        <span class="text-muted text-truncate d-block small" style="max-width: 130px; font-size: 0.75rem;">{{ slot.course_name }}</span>
+                                        <span class="badge bg-white text-muted border mt-1" style="font-size: 0.68rem;">
+                                            <i class="bi bi-people-fill text-leaf"></i> {{ slot.student_group }}
+                                        </span>
+                                    </div>
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Section 3: Subject-wise Attendance Marking Cards -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+            <div>
+                <span class="eyebrow text-uppercase">ATTENDANCE ROSTER</span>
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard2-check text-leaf me-2"></i>Assigned Subjects for Attendance</h5>
+            </div>
+            <span class="badge bg-light text-dark border">{{ assigned_courses|length }} Courses Assigned</span>
+        </div>
+
+        <div class="row g-3">
+            {% for c in assigned_courses %}
+            <div class="col-md-6 col-xl-4">
+                <div class="card p-3 border rounded-3 h-100 shadow-xs bg-light">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-leaf-subtle text-leaf-dark">{{ c.category }}</span>
+                        <span class="badge bg-white text-muted border">Sem {{ c.semester }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ c.code }} · {{ c.name }}</h5>
+                    <p class="text-muted small mb-3"><i class="bi bi-people me-1"></i>Group: <strong>{{ c.student_group }}</strong> · {{ c.type|capitalize }}</p>
+                    <a href="{{ url_for('teacher.mark_attendance', course_id=c._id) }}" class="btn btn-leaf btn-sm rounded-pill px-4 mt-auto shadow-xs">
+                        <i class="bi bi-check2-square me-1"></i> Mark Attendance
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-4 text-muted">
+                <i class="bi bi-journal-check fs-1 text-leaf d-block mb-2"></i>
+                No subjects assigned to your profile yet. The administrator can allocate courses via the Faculty Assignment board.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Subject Competency Drag & Drop
+    const poolBubbles = document.querySelectorAll('.subject-drag-bubble');
+    const dropzone = document.getElementById('teacherCompetencyDropzone');
+
+    poolBubbles.forEach(bubble => {
+        bubble.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', bubble.dataset.code);
+            bubble.classList.add('opacity-50');
+        });
+
+        bubble.addEventListener('dragend', () => {
+            bubble.classList.remove('opacity-50');
+        });
+    });
+
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drop-active');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('drop-active');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drop-active');
+        const code = e.dataTransfer.getData('text/plain');
+        if (code) {
+            addCompetencyBubble(code);
+        }
+    });
+});
+
+let currentCompetencies = {{ my_competencies|tojson }};
+
+function addCompetencyBubble(code) {
+    if (currentCompetencies.includes(code)) return;
+    currentCompetencies.push(code);
+    renderCompetencyChips();
+    syncCompetencies();
+}
+
+function removeCompetencyBubble(code) {
+    currentCompetencies = currentCompetencies.filter(c => c !== code);
+    renderCompetencyChips();
+    syncCompetencies();
+}
+
+function renderCompetencyChips() {
+    const dropzone = document.getElementById('teacherCompetencyDropzone');
+    if (!currentCompetencies.length) {
+        dropzone.innerHTML = `
+            <div class="drop-placeholder text-muted small py-2 px-3 w-100 text-center" id="competencyEmptyPlaceholder">
+                <i class="bi bi-arrow-down-circle text-leaf me-1"></i> Drag and drop subject bubbles here from the pool below
+            </div>
+        `;
+        return;
+    }
+
+    dropzone.innerHTML = currentCompetencies.map(code => `
+        <div class="competency-bubble-chip d-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-leaf text-white shadow-xs" data-code="${code}">
+            <i class="bi bi-award-fill"></i>
+            <span class="fw-semibold small">${code}</span>
+            <button type="button" class="btn-close btn-close-white btn-sm" onclick="removeCompetencyBubble('${code}')"></button>
+        </div>
+    `).join('');
+}
+
+async function syncCompetencies() {
+    try {
+        const res = await fetch('{{ url_for("api.save_competencies") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject_codes: currentCompetencies })
+        });
+        const result = await res.json();
+        const statusBadge = document.getElementById('bubbleSaveStatus');
+        if (statusBadge) {
+            statusBadge.classList.remove('d-none');
+            setTimeout(() => statusBadge.classList.add('d-none'), 2500);
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+</script>
+{% endblock %}
+

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Edit Subject · {{ course.code }} · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 p-md-5 border-0 rounded-4 shadow-sm bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                    <div>
+                        <span class="eyebrow text-uppercase">CURRICULUM EDITOR</span>
+                        <h3 class="fw-bold text-dark mb-1">Edit Subject: {{ course.code }}</h3>
+                    </div>
+                    <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="{{ url_for('admin.subjects') }}">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Subjects
+                    </a>
+                </div>
+
+                <form method="post">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">Subject Code <span class="text-danger">*</span></label>
+                            <input type="text" name="code" value="{{ course.code }}" class="form-control bg-light" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold text-muted small">Subject Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" value="{{ course.name }}" class="form-control bg-light" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">Subject Type</label>
+                            <select name="type" id="editSubjectTypeSelect" class="form-select bg-light" onchange="toggleEditLabDuration(this.value)">
+                                <option value="theory" {% if course.type == 'theory' %}selected{% endif %}>Theory Class (55 mins)</option>
+                                <option value="lab" {% if course.type == 'lab' %}selected{% endif %}>Practical / Lab Session</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4" id="editLabDurationCol" {% if course.type != 'lab' %}style="display: none;"{% endif %}>
+                            <label class="form-label fw-semibold text-muted small">Lab Duration</label>
+                            <select name="lab_duration" class="form-select bg-light">
+                                <option value="2" {% if course.lab_duration == 2 %}selected{% endif %}>2 Periods (~2 Hours: 110 mins)</option>
+                                <option value="3" {% if course.lab_duration == 3 %}selected{% endif %}>3 Periods (~3 Hours: 165 mins)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">Curriculum Category</label>
+                            <select name="category" class="form-select bg-light">
+                                <option value="Major" {% if course.category == 'Major' %}selected{% endif %}>Major Discipline Core</option>
+                                <option value="Minor" {% if course.category == 'Minor' %}selected{% endif %}>Minor Stream</option>
+                                <option value="Multidisciplinary" {% if course.category == 'Multidisciplinary' %}selected{% endif %}>Multidisciplinary Open</option>
+                                <option value="AEC" {% if course.category == 'AEC' %}selected{% endif %}>AEC (Ability Enhancement)</option>
+                                <option value="SEC" {% if course.category == 'SEC' %}selected{% endif %}>SEC (Skill Enhancement)</option>
+                                <option value="VAC" {% if course.category == 'VAC' %}selected{% endif %}>VAC (Value Added Course)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">Sessions Per Week</label>
+                            <input type="number" name="sessions_per_week" class="form-control bg-light" value="{{ course.sessions_per_week|default(3) }}" min="1" max="6" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">Semester</label>
+                            <select name="semester" class="form-select bg-light">
+                                {% for s in range(1, 9) %}
+                                    <option value="{{ s }}" {% if course.semester == s %}selected{% endif %}>Semester {{ s }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">Student Group</label>
+                            <input type="text" name="student_group" value="{{ course.student_group or '' }}" class="form-control bg-light" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted small">Assigned Faculty</label>
+                            <select name="teacher_id" class="form-select bg-light">
+                                <option value="">— Unassigned —</option>
+                                {% for t in teachers %}
+                                    <option value="{{ t._id }}" {% if course.teacher_id and course.teacher_id|string == t._id|string %}selected{% endif %}>
+                                        {{ t.name }} ({{ t.employee_id or t.email }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted small">Default Classroom / Lab Room</label>
+                            <input type="text" name="room_name" value="{{ course.room_name or '' }}" class="form-control bg-light">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-muted small">Syllabus Overview</label>
+                            <textarea name="syllabus" class="form-control bg-light" rows="4">{{ course.syllabus or '' }}</textarea>
+                        </div>
+
+                        <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-between">
+                            <a href="{{ url_for('admin.subjects') }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                            <button type="submit" class="btn btn-leaf rounded-pill px-4 shadow-sm">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleEditLabDuration(val) {
+    document.getElementById('editLabDurationCol').style.display = (val === 'lab') ? 'block' : 'none';
+}
+</script>
+{% endblock %}
+

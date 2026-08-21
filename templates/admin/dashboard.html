@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Admin Control Center · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="eyebrow text-uppercase">ADMIN CONTROL CENTER</span>
+            <h2 class="fw-bold text-dark mb-0">Academic Operations & Graphical Analytics</h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="{{ url_for('admin.subjects') }}">
+                <i class="bi bi-journal-plus me-1"></i> Add Subject
+            </a>
+            <a class="btn btn-outline-leaf btn-sm rounded-pill px-3" href="{{ url_for('admin.faculty_assign') }}">
+                <i class="bi bi-person-check me-1"></i> Assign Faculty
+            </a>
+            <a class="btn btn-leaf btn-sm rounded-pill px-3 shadow-sm" href="{{ url_for('admin.timetable_view') }}">
+                <i class="bi bi-calendar-event me-1"></i> Timetable Generator
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Cards Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm border-0 bg-white d-flex align-items-center gap-3">
+                <div class="stat-icon rounded-circle bg-leaf-subtle text-leaf p-3">
+                    <i class="bi bi-people-fill fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted text-uppercase fw-semibold d-block">Total Students</small>
+                    <strong class="fs-2 fw-bold text-dark">{{ stats.students }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm border-0 bg-white d-flex align-items-center gap-3">
+                <div class="stat-icon rounded-circle bg-leaf-subtle text-leaf p-3">
+                    <i class="bi bi-person-workspace fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted text-uppercase fw-semibold d-block">Faculty Members</small>
+                    <strong class="fs-2 fw-bold text-dark">{{ stats.teachers }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm border-0 bg-white d-flex align-items-center gap-3">
+                <div class="stat-icon rounded-circle bg-leaf-subtle text-leaf p-3">
+                    <i class="bi bi-book-half fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted text-uppercase fw-semibold d-block">Total Subjects</small>
+                    <strong class="fs-2 fw-bold text-dark">{{ stats.courses }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm border-0 bg-white d-flex align-items-center gap-3">
+                <div class="stat-icon rounded-circle bg-leaf-subtle text-leaf p-3">
+                    <i class="bi bi-clipboard2-check-fill fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted text-uppercase fw-semibold d-block">Attendance Records</small>
+                    <strong class="fs-2 fw-bold text-dark">{{ stats.attendance_records }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-4 mb-4">
+        <!-- User Roles Chart -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 rounded-4 shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart-fill text-leaf me-2"></i>Institutional User Distribution</h5>
+                    <span class="badge bg-light text-muted border">MongoDB Aggregation</span>
+                </div>
+                <div class="chart-container" style="position: relative; height: 260px;">
+                    <canvas id="roleChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Category Split -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 rounded-4 shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-diagram-3-fill text-leaf me-2"></i>Curriculum Category Distribution</h5>
+                    <span class="badge bg-light text-muted border">NEP 2020 Categories</span>
+                </div>
+                <div class="chart-container" style="position: relative; height: 260px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row g-4">
+        <!-- Group Attendance Health -->
+        <div class="col-lg-7">
+            <div class="card p-4 border-0 rounded-4 shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-line-fill text-leaf me-2"></i>Attendance Compliance by Student Group</h5>
+                    <span class="badge bg-leaf-subtle text-leaf-dark">Overall: {{ att_overview.overall_rate }}%</span>
+                </div>
+                <div class="chart-container" style="position: relative; height: 260px;">
+                    <canvas id="groupAttChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject Type Split (Theory vs Lab) -->
+        <div class="col-lg-5">
+            <div class="card p-4 border-0 rounded-4 shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-sliders text-leaf me-2"></i>Theory vs Practical Labs</h5>
+                    <span class="badge bg-light text-muted border">ABIT Lab Blocks</span>
+                </div>
+                <div class="chart-container" style="position: relative; height: 260px;">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Role Chart
+    const roleData = {{ role_data|tojson }};
+    const roleLabels = roleData.map(r => (r._id ? r._id.toUpperCase() : 'UNKNOWN'));
+    const roleCounts = roleData.map(r => r.count);
+    
+    new Chart(document.getElementById('roleChart'), {
+        type: 'doughnut',
+        data: {
+            labels: roleLabels,
+            datasets: [{
+                data: roleCounts,
+                backgroundColor: ['#2e7d32', '#43a047', '#81c784', '#c8e6c9'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // 2. Category Chart
+    const catData = {{ category_data|tojson }};
+    const catLabels = catData.map(c => c._id || 'Major');
+    const catCounts = catData.map(c => c.count);
+
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'polarArea',
+        data: {
+            labels: catLabels,
+            datasets: [{
+                data: catCounts,
+                backgroundColor: ['#1b5e20', '#2e7d32', '#388e3c', '#4caf50', '#81c784', '#a5d6a7']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // 3. Group Attendance Health
+    const attOverview = {{ att_overview|tojson }};
+    const groupStats = attOverview.group_stats || [];
+    const groupLabels = groupStats.map(g => g._id || 'General');
+    const groupRates = groupStats.map(g => g.rate);
+
+    new Chart(document.getElementById('groupAttChart'), {
+        type: 'bar',
+        data: {
+            labels: groupLabels.length ? groupLabels : ['ECE-6A', 'CSE-4B'],
+            datasets: [{
+                label: 'Attendance Rate (%)',
+                data: groupRates.length ? groupRates : [88.5, 76.2],
+                backgroundColor: '#2e7d32',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+            }
+        }
+    });
+
+    // 4. Type Split
+    const typeData = {{ type_data|tojson }};
+    const typeLabels = typeData.map(t => (t._id ? t._id.toUpperCase() : 'THEORY'));
+    const typeCounts = typeData.map(t => t.count);
+
+    new Chart(document.getElementById('typeChart'), {
+        type: 'pie',
+        data: {
+            labels: typeLabels.length ? typeLabels : ['THEORY', 'LAB'],
+            datasets: [{
+                data: typeCounts.length ? typeCounts : [12, 4],
+                backgroundColor: ['#2e7d32', '#81c784'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+

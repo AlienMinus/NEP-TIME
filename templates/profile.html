@@ -1,13 +1,138 @@
-{% extends "base.html" %}{% block title %}Profile · NEP-TIME{% endblock %}
-{% block content %}<div class="row g-4"><div class="col-lg-4"><div class="profile-card text-center">
-{% if user.avatar %}<img src="{{user.avatar}}" class="avatar">{% else %}<div class="avatar placeholder-avatar"><i class="bi bi-person"></i></div>{% endif %}
-<h3>{{user.name}}</h3><p class="text-muted">{{user.email}}</p><span class="badge bg-light text-dark">{{user.role|capitalize}}</span>
-</div></div><div class="col-lg-8"><div class="card p-4"><h3>Edit profile</h3>
-<form method="post" enctype="multipart/form-data" class="row g-3">
-<div class="col-md-6"><label>Name</label><input name="name" value="{{user.name}}" class="form-control"></div>
-<div class="col-md-6"><label>Phone</label><input name="phone" value="{{user.phone|default('')}}" class="form-control"></div>
-<div class="col-md-6"><label>Program</label><input name="program" value="{{user.program|default('')}}" class="form-control"></div>
-<div class="col-md-3"><label>Semester</label><input name="semester" type="number" value="{{user.semester|default(1)}}" class="form-control"></div>
-<div class="col-md-3"><label>Group</label><input name="student_group" value="{{user.student_group|default('')}}" class="form-control"></div>
-<div class="col-12"><label>Profile image</label><input type="file" name="avatar" accept="image/*" class="form-control"></div>
-<div class="col-12"><button class="btn btn-leaf">Save changes</button></div></form></div></div></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}My Profile · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row g-4">
+        <!-- Profile Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 rounded-4 shadow-sm text-center">
+                <div class="position-relative d-inline-block mx-auto mb-3">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar }}" class="avatar rounded-circle shadow-sm" alt="{{ user.name }}">
+                    {% else %}
+                        <div class="avatar placeholder-avatar rounded-circle shadow-xs">
+                            <i class="bi bi-person"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <h4 class="fw-bold text-dark mb-1">{{ user.name }}</h4>
+                <p class="text-muted small mb-2">{{ user.email }}</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <span class="badge bg-leaf text-white px-3 py-1 rounded-pill text-uppercase">{{ user.role }}</span>
+                    {% if user.role == 'student' and user.regn_no %}
+                        <span class="badge bg-light text-dark border px-3 py-1 rounded-pill">{{ user.regn_no }}</span>
+                    {% elif user.role == 'teacher' and user.employee_id %}
+                        <span class="badge bg-light text-dark border px-3 py-1 rounded-pill">{{ user.employee_id }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="border-top pt-3 text-start small text-muted">
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Institution:</span>
+                        <strong class="text-dark">ABIT Cuttack</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Program:</span>
+                        <strong class="text-dark">{{ user.program or 'Engineering' }}</strong>
+                    </div>
+                    {% if user.role == 'student' %}
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Group:</span>
+                        <strong class="text-dark">{{ user.student_group or '—' }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Semester:</span>
+                        <strong class="text-dark">Sem {{ user.semester or 1 }}</strong>
+                    </div>
+                    {% elif user.role == 'teacher' %}
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Designation:</span>
+                        <strong class="text-dark">{{ user.designation or 'Faculty' }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Edit Form -->
+        <div class="col-lg-8">
+            <div class="card p-4 p-md-5 border-0 rounded-4 shadow-sm bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                    <div>
+                        <h4 class="fw-bold text-dark mb-1">Edit Profile Details</h4>
+                        <small class="text-muted">Keep your academic and institutional records updated</small>
+                    </div>
+                    <span class="badge bg-leaf-subtle text-leaf-dark px-3 py-2 rounded-pill"><i class="bi bi-shield-check me-1"></i> Verified</span>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Full Name</label>
+                        <input type="text" name="name" value="{{ user.name }}" class="form-control bg-light" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Email Address (Primary)</label>
+                        <input type="email" value="{{ user.email }}" class="form-control bg-light" disabled>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Phone Number</label>
+                        <input type="tel" name="phone" value="{{ user.phone or '' }}" class="form-control bg-light" placeholder="+91 9876543210">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Program / Department</label>
+                        <input type="text" name="program" value="{{ user.program or '' }}" class="form-control bg-light">
+                    </div>
+
+                    {% if user.role == 'student' %}
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small">Student Regn. Number</label>
+                        <input type="text" name="regn_no" value="{{ user.regn_no or '' }}" class="form-control bg-light" placeholder="Registration No">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small">Semester</label>
+                        <select name="semester" class="form-select bg-light">
+                            {% for s in range(1, 9) %}
+                                <option value="{{ s }}" {% if user.semester == s %}selected{% endif %}>Semester {{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-muted small">Student Group / Section</label>
+                        <input type="text" name="student_group" value="{{ user.student_group or '' }}" class="form-control bg-light" placeholder="e.g. ECE-6A">
+                    </div>
+                    {% elif user.role == 'teacher' %}
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Employee ID</label>
+                        <input type="text" name="employee_id" value="{{ user.employee_id or '' }}" class="form-control bg-light" placeholder="e.g. ABIT-FAC-108">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Designation</label>
+                        <input type="text" name="designation" value="{{ user.designation or '' }}" class="form-control bg-light" placeholder="Assistant Professor">
+                    </div>
+                    {% endif %}
+
+                    <div class="col-12 mt-4">
+                        <label class="form-label fw-semibold text-muted small">Update Profile Picture (Cloudinary)</label>
+                        <input type="file" name="avatar" accept="image/*" class="form-control bg-light">
+                        <small class="text-muted">JPEG, PNG, WebP up to 5MB.</small>
+                    </div>
+
+                    <div class="col-12 mt-4 pt-2 border-top">
+                        <button type="submit" class="btn btn-leaf px-4 py-2 rounded-3 fw-semibold shadow-sm">
+                            <i class="bi bi-floppy-fill me-2"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

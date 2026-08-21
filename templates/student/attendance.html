@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}My Attendance Analytics · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="eyebrow text-uppercase">ACADEMIC COMPLIANCE</span>
+            <h2 class="fw-bold text-dark mb-0">My Attendance Analytics</h2>
+            <p class="text-muted small mb-0">Interactive tabular and graphical attendance breakdown with NEP 75% compliance tracking.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge {% if att_summary.overall_percent >= 75 %}bg-leaf{% else %}bg-danger{% endif %} text-white px-4 py-2 rounded-pill fs-6">
+                Overall: {{ att_summary.overall_percent }}% Attendance
+            </span>
+        </div>
+    </div>
+
+    <!-- Attendance Alert if Low -->
+    {% if att_summary.overall_percent < 75 and att_summary.total_records > 0 %}
+    <div class="alert alert-warning border-0 rounded-4 shadow-sm d-flex align-items-center gap-3 p-3 mb-4">
+        <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+        <div>
+            <strong class="d-block text-dark">Attention: Low Attendance Warning (&lt;75%)</strong>
+            <span class="small text-muted">Your aggregate attendance is currently below the mandatory 75% institutional threshold. Please attend upcoming lectures to maintain examination eligibility.</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Graphical Analytics Row -->
+    <div class="row g-4 mb-4">
+        <!-- Chart.js Subject Bar Chart -->
+        <div class="col-lg-8">
+            <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-fill text-leaf me-2"></i>Subject-Wise Attendance Breakdown</h5>
+                    <span class="badge bg-light text-muted border">Minimum 75% Target</span>
+                </div>
+                <div class="chart-container" style="position: relative; height: 280px;">
+                    <canvas id="studentAttChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject Summary Cards / Overall Gauge -->
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100 d-flex flex-column">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill text-leaf me-2"></i>Summary Statistics</h5>
+                <div class="flex-grow-1 d-flex flex-column justify-content-center">
+                    <div class="text-center mb-3">
+                        <span class="display-5 fw-bold {% if att_summary.overall_percent >= 75 %}text-leaf{% else %}text-danger{% endif %}">
+                            {{ att_summary.overall_percent }}%
+                        </span>
+                        <small class="text-muted d-block">Overall Aggregate</small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3">
+                        {% for s in att_summary.stats %}
+                        <div class="p-2 px-3 rounded-3 bg-light border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="text-dark small text-truncate" style="max-width: 170px;">{{ s.course_name }}</strong>
+                                <span class="badge {% if s.percent >= 75 %}bg-leaf{% else %}bg-danger{% endif %} text-white small">{{ s.percent }}%</span>
+                            </div>
+                            <div class="progress mb-1" style="height: 6px;">
+                                <div class="progress-bar {% if s.percent >= 75 %}bg-leaf{% else %}bg-danger{% endif %}" style="width: {{ s.percent }}%;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted" style="font-size: 0.68rem;">
+                                <span>{{ s.present }} Present</span>
+                                <span>{{ s.absent }} Absent</span>
+                                <span>{{ s.total }} Classes</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4 text-muted small">No attendance records yet.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabular Attendance History -->
+    <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+        <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-table text-leaf me-2"></i>Attendance Log History ({{ att_summary.rows|length }} Records)</h5>
+            <input type="text" id="attLogSearch" class="form-control form-control-sm w-auto bg-light" placeholder="Search by date, course...">
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="attLogTable">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Date</th>
+                        <th>Course / Subject</th>
+                        <th>Group</th>
+                        <th class="text-end pe-4">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in att_summary.rows %}
+                    <tr>
+                        <td class="ps-4">
+                            <strong class="text-dark"><i class="bi bi-calendar-check text-leaf me-1"></i>{{ r.date }}</strong>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-dark">{{ r.course_name }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ r.student_group or '—' }}</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if r.status == 'present' %}
+                                <span class="badge bg-success-subtle text-success border border-success px-3 py-1 rounded-pill">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Present
+                                </span>
+                            {% elif r.status == 'late' %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-3 py-1 rounded-pill">
+                                    <i class="bi bi-clock-history me-1"></i> Late
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-1 rounded-pill">
+                                    <i class="bi bi-x-circle-fill me-1"></i> Absent
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-clipboard-x fs-1 text-leaf d-block mb-2"></i>
+                            No attendance history recorded yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Render Chart.js Bar Chart
+    const labels = {{ att_summary.chart_labels|tojson }};
+    const values = {{ att_summary.chart_values|tojson }};
+    const colors = {{ att_summary.chart_colors|tojson }};
+
+    if (labels.length > 0) {
+        new Chart(document.getElementById('studentAttChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Attendance %',
+                    data: values,
+                    backgroundColor: colors,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { callback: v => v + '%' },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // Log table search
+    document.getElementById('attLogSearch')?.addEventListener('keyup', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('#attLogTable tbody tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}
+

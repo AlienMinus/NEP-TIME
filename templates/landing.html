@@ -1,12 +1,135 @@
-{% extends "base.html" %}{% block title %}NEP-TIME · ABIT{% endblock %}
+{% extends "base.html" %}
+{% block title %}NEP-TIME · ABIT Academic Timetable & Scheduling Platform{% endblock %}
+
 {% block content %}
-<section class="hero-leaf rounded-4 p-5">
-<div class="row align-items-center"><div class="col-lg-8">
-<span class="eyebrow">ABIT · NEP 2020 · MULTIDISCIPLINARY</span>
-<h1 class="display-4 fw-bold mt-2">Intelligent Academic Scheduling.</h1>
-<p class="lead">A student-centric timetable, attendance and academic resource platform built for multidisciplinary engineering education.</p>
-<a class="btn btn-leaf btn-lg" href="{{url_for('login')}}">Enter NEP-TIME</a>
-<a class="btn btn-outline-dark btn-lg ms-2" href="{{url_for('register')}}">Create Profile</a>
-</div><div class="col-lg-4"><div class="hero-card"><i class="bi bi-calendar2-week"></i><h4>ABIT Standard</h4><p>08:15 AM – 02:15 PM<br>6 × 55-minute lessons<br>Smart lunch & lab scheduling</p></div></div></div>
-</section>
+<div class="landing-container">
+    <!-- Hero Banner -->
+    <section class="hero-leaf rounded-4 p-4 p-md-5 mb-5 shadow-sm">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white text-leaf fw-bold small mb-3 border shadow-xs">
+                    <i class="bi bi-shield-check"></i> NEP 2020 Compliant · ABIT Cuttack
+                </div>
+                <h1 class="display-5 fw-bold text-dark mb-3 lh-sm">
+                    Intelligent Academic Scheduling & Attendance for <span class="text-leaf">ABIT</span>
+                </h1>
+                <p class="lead text-muted mb-4 fs-6">
+                    A comprehensive multidisciplinary engineering workspace supporting conflict-free timetables, drag-and-drop course registration (max 6 theory, max 4 lab), faculty teaching preferences, and real-time attendance analytics.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a class="btn btn-leaf btn-lg rounded-pill px-4 shadow-sm" href="{{ url_for('auth.login') }}">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Enter Portal
+                    </a>
+                    <a class="btn btn-outline-dark btn-lg rounded-pill px-4" href="{{ url_for('auth.register') }}">
+                        <i class="bi bi-person-plus me-2"></i> Create Profile
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="hero-card border-0 p-4 rounded-4 shadow-md bg-white">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-clock-history text-leaf fs-3"></i>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark">ABIT College Schedule</h5>
+                                <small class="text-muted">6 Lessons · 55 Mins Each</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-leaf-subtle text-leaf-dark px-3 py-2 rounded-pill">08:15 – 14:15</span>
+                    </div>
+
+                    <div class="schedule-features d-flex flex-column gap-3">
+                        <div class="d-flex align-items-start gap-3 p-2 rounded-3 bg-light">
+                            <div class="schedule-icon rounded-circle bg-white text-leaf p-2 shadow-xs">
+                                <i class="bi bi-cup-hot-fill"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark small">1st Year Lunch Break</strong>
+                                <span class="text-muted small">10:05 AM – 10:35 AM (After Period 2)</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3 p-2 rounded-3 bg-light">
+                            <div class="schedule-icon rounded-circle bg-white text-leaf p-2 shadow-xs">
+                                <i class="bi bi-cup-straw"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark small">2nd, 3rd & 4th Year Lunch Break</strong>
+                                <span class="text-muted small">11:00 AM – 11:30 AM (After Period 3)</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3 p-2 rounded-3 bg-light">
+                            <div class="schedule-icon rounded-circle bg-white text-leaf p-2 shadow-xs">
+                                <i class="bi bi-cpu-fill"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark small">Continuous Lab Slots</strong>
+                                <span class="text-muted small">Flexible 2-Hour or 3-Hour contiguous lab blocks</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Modules Grid -->
+    <div class="row g-4 mb-5">
+        <!-- Student Column -->
+        <div class="col-md-4">
+            <div class="card h-100 p-4 border-0 rounded-4 shadow-sm feature-box">
+                <div class="feature-icon mb-3 bg-leaf-subtle text-leaf rounded-3 p-3 d-inline-flex">
+                    <i class="bi bi-mortarboard-fill fs-3"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Student Workspace</h4>
+                <p class="text-muted small mb-3">
+                    Drag & drop course enrollment adhering to NEP limits (Max 6 Theory, Max 4 Labs), personalized year-adjusted timetable, and visual attendance tracking with &ge;75% threshold alerts.
+                </p>
+                <ul class="list-unstyled text-muted small mt-auto d-flex flex-column gap-2 border-top pt-3">
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Student Regn No & Email ID</li>
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Interactive Drag & Drop Enrollment</li>
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Graphical & Tabular Attendance</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Teacher Column -->
+        <div class="col-md-4">
+            <div class="card h-100 p-4 border-0 rounded-4 shadow-sm feature-box">
+                <div class="feature-icon mb-3 bg-leaf-subtle text-leaf rounded-3 p-3 d-inline-flex">
+                    <i class="bi bi-person-workspace fs-3"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Faculty Workspace</h4>
+                <p class="text-muted small mb-3">
+                    Weekly teaching schedule featuring clearly highlighted Leisure/Free periods, draggable subject competency bubbles to express teaching preferences, and rapid subject-wise attendance marking.
+                </p>
+                <ul class="list-unstyled text-muted small mt-auto d-flex flex-column gap-2 border-top pt-3">
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Employee ID & Profile Sync</li>
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Free / Leisure Period Detection</li>
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Draggable Subject Competency Bubbles</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Admin Column -->
+        <div class="col-md-4">
+            <div class="card h-100 p-4 border-0 rounded-4 shadow-sm feature-box">
+                <div class="feature-icon mb-3 bg-leaf-subtle text-leaf rounded-3 p-3 d-inline-flex">
+                    <i class="bi bi-graph-up-arrow fs-3"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Admin Control Center</h4>
+                <p class="text-muted small mb-3">
+                    Visual graphical dashboard, subject configuration (theory, 2hr/3hr labs, syllabus), drag & drop faculty allocation, and 1-click conflict-free automated scheduling engine.
+                </p>
+                <ul class="list-unstyled text-muted small mt-auto d-flex flex-column gap-2 border-top pt-3">
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Drag & Drop Faculty Assignment</li>
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Zero-Conflict Timetable Engine</li>
+                    <li><i class="bi bi-check2-circle text-leaf me-2"></i> Chart.js Graphical Dashboards</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

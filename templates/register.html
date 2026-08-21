@@ -1,11 +1,146 @@
-{% extends "base.html" %}{% block title %}Create Profile · NEP-TIME{% endblock %}
-{% block content %}<div class="auth-wrap"><div class="auth-card">
-<h2>Create your profile</h2><p class="text-muted">Students and teachers can register with verified email.</p>
-<form method="post">
-<div class="row g-3"><div class="col-md-6"><label>Name</label><input name="name" class="form-control" required></div>
-<div class="col-md-6"><label>Email</label><input type="email" name="email" class="form-control" required></div>
-<div class="col-md-6"><label>Account</label><select name="role" class="form-select"><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
-<div class="col-md-6"><label>Semester</label><input type="number" name="semester" value="1" min="1" max="8" class="form-control"></div>
-<div class="col-md-6"><label>Program</label><input name="program" class="form-control" value="Electrical & Computer Engineering"></div>
-<div class="col-md-6"><label>Student Group</label><input name="student_group" class="form-control" placeholder="ECE-6A"></div></div>
-<button class="btn btn-leaf w-100 mt-4">Send OTP</button></form></div></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Create Profile · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="auth-wrap py-4">
+    <div class="auth-card auth-card-lg p-4 p-md-5 rounded-4 shadow-md bg-white">
+        <div class="text-center mb-4">
+            <div class="logo-mark mb-3 shadow-xs">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <h2 class="fw-bold text-dark mb-1">Create Your Profile</h2>
+            <p class="text-muted small">Register with your institutional details to access NEP-TIME</p>
+        </div>
+
+        <form method="post" id="registrationForm">
+            <!-- Role Toggle Pills -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold text-muted small d-block text-center">I am registering as a:</label>
+                <div class="role-toggle-group d-flex p-1 bg-light rounded-pill border">
+                    <input type="radio" class="btn-check" name="role" id="roleStudent" value="student" checked onchange="toggleRoleFields('student')">
+                    <label class="btn btn-role rounded-pill flex-fill py-2 fw-semibold small" for="roleStudent">
+                        <i class="bi bi-mortarboard-fill me-1"></i> Student
+                    </label>
+
+                    <input type="radio" class="btn-check" name="role" id="roleTeacher" value="teacher" onchange="toggleRoleFields('teacher')">
+                    <label class="btn btn-role rounded-pill flex-fill py-2 fw-semibold small" for="roleTeacher">
+                        <i class="bi bi-person-workspace me-1"></i> Teacher
+                    </label>
+                </div>
+            </div>
+
+            <!-- Common Fields -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-muted small">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control bg-light" placeholder="e.g. Dr. Ramesh Kumar / Ananya Das" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-muted small">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control bg-light" placeholder="name@abit.edu.in" required>
+                </div>
+            </div>
+
+            <!-- Student-Specific Section -->
+            <div id="studentFields" class="role-specific-section">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Student Regn. Number <span class="text-danger">*</span></label>
+                        <input type="text" name="regn_no" id="inputRegnNo" class="form-control bg-light" placeholder="e.g. 2101201045" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Program / Branch</label>
+                        <select name="program" class="form-select bg-light">
+                            <option value="Electrical & Computer Engineering">Electrical & Computer Engineering</option>
+                            <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                            <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Electrical Engineering">Electrical Engineering</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Semester</label>
+                        <select name="semester" class="form-select bg-light">
+                            <option value="1">Semester 1 (1st Year)</option>
+                            <option value="2">Semester 2 (1st Year)</option>
+                            <option value="3">Semester 3 (2nd Year)</option>
+                            <option value="4">Semester 4 (2nd Year)</option>
+                            <option value="5">Semester 5 (3rd Year)</option>
+                            <option value="6" selected>Semester 6 (3rd Year)</option>
+                            <option value="7">Semester 7 (4th Year)</option>
+                            <option value="8">Semester 8 (4th Year)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Student Group / Section <span class="text-danger">*</span></label>
+                        <input type="text" name="student_group" id="inputStudentGroup" class="form-control bg-light" placeholder="e.g. ECE-6A, CSE-4B" value="ECE-6A" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher-Specific Section -->
+            <div id="teacherFields" class="role-specific-section d-none">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Employee ID <span class="text-danger">*</span></label>
+                        <input type="text" name="employee_id" id="inputEmployeeId" class="form-control bg-light" placeholder="e.g. ABIT-FAC-108">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted small">Designation</label>
+                        <select name="designation" class="form-select bg-light">
+                            <option value="Assistant Professor">Assistant Professor</option>
+                            <option value="Associate Professor">Associate Professor</option>
+                            <option value="Professor">Professor</option>
+                            <option value="Head of Department (HOD)">Head of Department (HOD)</option>
+                            <option value="Lab Instructor">Lab Instructor</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-leaf w-100 py-2 mt-3 rounded-3 fw-semibold shadow-sm">
+                <i class="bi bi-send me-2"></i> Send Verification OTP
+            </button>
+        </form>
+
+        <div class="divider d-flex align-items-center text-muted small my-3">
+            <span class="flex-grow-1 border-bottom"></span>
+            <span class="px-3">OR</span>
+            <span class="flex-grow-1 border-bottom"></span>
+        </div>
+
+        <a class="btn btn-outline-dark w-100 py-2 rounded-3 fw-semibold d-flex align-items-center justify-content-center gap-2 mb-3" href="{{ url_for('auth.google_login') }}">
+            <i class="bi bi-google text-danger"></i> Quick Register with Google
+        </a>
+
+        <p class="text-center text-muted small mb-0">
+            Already registered? <a href="{{ url_for('auth.login') }}" class="text-leaf fw-bold text-decoration-none">Sign in here</a>
+        </p>
+    </div>
+</div>
+
+<script>
+function toggleRoleFields(role) {
+    const studentSec = document.getElementById('studentFields');
+    const teacherSec = document.getElementById('teacherFields');
+    const regnInput = document.getElementById('inputRegnNo');
+    const groupInput = document.getElementById('inputStudentGroup');
+    const empInput = document.getElementById('inputEmployeeId');
+
+    if (role === 'teacher') {
+        studentSec.classList.add('d-none');
+        teacherSec.classList.remove('d-none');
+        regnInput.removeAttribute('required');
+        groupInput.removeAttribute('required');
+        empInput.setAttribute('required', 'required');
+    } else {
+        teacherSec.classList.add('d-none');
+        studentSec.classList.remove('d-none');
+        regnInput.setAttribute('required', 'required');
+        groupInput.setAttribute('required', 'required');
+        empInput.removeAttribute('required');
+    }
+}
+</script>
+{% endblock %}

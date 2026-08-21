@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Faculty Subject Assignment · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="eyebrow text-uppercase">FACULTY ALLOCATION</span>
+            <h2 class="fw-bold text-dark mb-0">Drag & Drop Faculty Assignment</h2>
+            <p class="text-muted small mb-0">Drag faculty members from the left pool and drop them onto subject cards to assign them directly.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-dark btn-sm rounded-pill px-3" href="{{ url_for('admin.subjects') }}">
+                <i class="bi bi-gear me-1"></i> Manage Subjects
+            </a>
+            <a class="btn btn-leaf btn-sm rounded-pill px-3 shadow-sm" href="{{ url_for('admin.timetable_view') }}">
+                <i class="bi bi-calendar-check me-1"></i> View Timetable
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert / Status Banner -->
+    <div id="assignToast" class="alert alert-success alert-dismissible fade d-none mb-3 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> <span id="assignToastMsg">Faculty assigned successfully.</span>
+        <button type="button" class="btn-close" onclick="this.parentElement.classList.add('d-none')"></button>
+    </div>
+
+    <div class="row g-4">
+        <!-- Faculty Pool Column -->
+        <div class="col-lg-4">
+            <div class="card p-3 border-0 rounded-4 shadow-sm bg-white sticky-top" style="top: 80px; z-index: 10;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill text-leaf me-2"></i>Faculty Pool</h5>
+                    <span class="badge bg-leaf-subtle text-leaf-dark">{{ teachers|length }} Available</span>
+                </div>
+                <input type="text" id="facultySearch" class="form-control form-control-sm bg-light mb-3" placeholder="Filter faculty by name/ID...">
+
+                <div class="faculty-pool-list d-flex flex-column gap-2" style="max-height: 68vh; overflow-y: auto; padding-right: 4px;">
+                    {% for t in teachers %}
+                    <div class="card p-3 border rounded-3 faculty-drag-card bg-light shadow-xs cursor-grab" 
+                         draggable="true" 
+                         data-teacher-id="{{ t._id }}" 
+                         data-teacher-name="{{ t.name }}"
+                         data-employee-id="{{ t.employee_id or '' }}"
+                         id="faculty-{{ t._id }}">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-sm rounded-circle bg-leaf text-white d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                                {{ t.name[:1] }}
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <strong class="text-dark d-block text-truncate small">{{ t.name }}</strong>
+                                <span class="badge bg-white text-muted border text-uppercase" style="font-size: 0.7rem;">{{ t.employee_id or 'FACULTY' }}</span>
+                            </div>
+                            <i class="bi bi-grip-vertical text-muted fs-5"></i>
+                        </div>
+                        {% if t.teaching_subjects %}
+                        <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1">
+                            {% for code in t.teaching_subjects %}
+                                <span class="badge bg-leaf-light text-leaf border-0" style="font-size: 0.65rem;">{{ code }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted small">No teachers registered yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Subjects Column -->
+        <div class="col-lg-8">
+            <div class="d-flex flex-column gap-4">
+                {% for group in student_groups %}
+                <div class="card p-4 border-0 rounded-4 shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-mortarboard-fill text-leaf fs-5"></i>
+                            <h5 class="fw-bold text-dark mb-0">Student Group: <span class="text-leaf">{{ group }}</span></h5>
+                        </div>
+                        <span class="badge bg-light text-dark border">Year/Group Section</span>
+                    </div>
+
+                    <div class="row g-3">
+                        {% for c in courses if c.student_group == group %}
+                        <div class="col-md-6">
+                            <div class="card p-3 border rounded-3 h-100 course-assign-box bg-light" id="course-card-{{ c._id }}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="badge {% if c.type == 'lab' %}bg-warning text-dark{% else %}bg-success-subtle text-success{% endif %} mb-1">
+                                            {{ c.type|upper }} {% if c.type == 'lab' %}({{ c.lab_duration|default(2) }}P){% endif %}
+                                        </span>
+                                        <h6 class="fw-bold text-dark mb-0">{{ c.code }} · {{ c.name }}</h6>
+                                    </div>
+                                    <span class="badge bg-white text-muted border small">Sem {{ c.semester }}</span>
+                                </div>
+
+                                <div class="text-muted small mb-2">
+                                    <i class="bi bi-clock me-1"></i>{{ c.sessions_per_week }} slots/wk
+                                    {% if c.room_name %} · <i class="bi bi-door-open me-1"></i>{{ c.room_name }}{% endif %}
+                                </div>
+
+                                <!-- Drop Zone for Faculty -->
+                                <div class="faculty-drop-zone p-2 rounded-3 text-center border-dashed mt-auto transition"
+                                     data-course-id="{{ c._id }}"
+                                     data-course-code="{{ c.code }}"
+                                     id="dropzone-{{ c._id }}">
+                                    {% if c.teacher_id and c.teacher_name and c.teacher_name != 'Unassigned' %}
+                                        <div class="assigned-teacher-badge d-flex align-items-center justify-content-between p-2 rounded-2 bg-leaf-subtle border border-leaf">
+                                            <div class="d-flex align-items-center gap-2 text-truncate">
+                                                <i class="bi bi-person-check-fill text-leaf"></i>
+                                                <span class="fw-semibold text-leaf-dark small text-truncate" id="tname-{{ c._id }}">{{ c.teacher_name }}</span>
+                                            </div>
+                                            <button class="btn btn-link btn-sm text-danger p-0 ms-2 text-decoration-none" title="Unassign" onclick="unassignTeacher('{{ c._id }}')">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <div class="drop-placeholder py-2 text-muted small">
+                                            <i class="bi bi-arrow-down-circle text-leaf me-1"></i> Drag & drop faculty here
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="card p-5 text-center border-0 rounded-4 bg-white shadow-sm text-muted">
+                    <i class="bi bi-journal-x fs-1 d-block mb-3 text-leaf"></i>
+                    <h4>No courses found to assign.</h4>
+                    <p class="small">Configure subjects first in the Subject Configuration module.</p>
+                    <div><a class="btn btn-leaf rounded-pill px-4" href="{{ url_for('admin.subjects') }}">Go to Subject Config</a></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Drag & Drop for Faculty cards
+    const dragCards = document.querySelectorAll('.faculty-drag-card');
+    const dropZones = document.querySelectorAll('.faculty-drop-zone');
+
+    dragCards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                teacherId: card.dataset.teacherId,
+                teacherName: card.dataset.teacherName,
+                employeeId: card.dataset.employeeId
+            }));
+            card.classList.add('opacity-50');
+        });
+
+        card.addEventListener('dragend', () => {
+            card.classList.remove('opacity-50');
+        });
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('drop-active');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drop-active');
+        });
+
+        zone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            zone.classList.remove('drop-active');
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const courseId = zone.dataset.courseId;
+                
+                // Call API
+                const res = await fetch('{{ url_for("api.assign_faculty") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course_id: courseId, teacher_id: data.teacherId })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    // Update UI
+                    zone.innerHTML = `
+                        <div class="assigned-teacher-badge d-flex align-items-center justify-content-between p-2 rounded-2 bg-leaf-subtle border border-leaf">
+                            <div class="d-flex align-items-center gap-2 text-truncate">
+                                <i class="bi bi-person-check-fill text-leaf"></i>
+                                <span class="fw-semibold text-leaf-dark small text-truncate" id="tname-${courseId}">${data.teacherName}</span>
+                            </div>
+                            <button class="btn btn-link btn-sm text-danger p-0 ms-2 text-decoration-none" title="Unassign" onclick="unassignTeacher('${courseId}')">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+                    `;
+                    showToast(`Assigned ${data.teacherName} to ${zone.dataset.courseCode}`);
+                } else {
+                    alert(result.message || 'Assignment failed');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    });
+
+    // Faculty filter search
+    document.getElementById('facultySearch')?.addEventListener('keyup', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.faculty-drag-card').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+});
+
+async function unassignTeacher(courseId) {
+    if (!confirm('Unassign this faculty member?')) return;
+    try {
+        const res = await fetch('{{ url_for("api.assign_faculty") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ course_id: courseId, teacher_id: null })
+        });
+        const result = await res.json();
+        if (result.success) {
+            const zone = document.getElementById(`dropzone-${courseId}`);
+            zone.innerHTML = `
+                <div class="drop-placeholder py-2 text-muted small">
+                    <i class="bi bi-arrow-down-circle text-leaf me-1"></i> Drag & drop faculty here
+                </div>
+            `;
+            showToast('Faculty unassigned.');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('assignToast');
+    const toastMsg = document.getElementById('assignToastMsg');
+    if (toast && toastMsg) {
+        toastMsg.innerText = msg;
+        toast.classList.remove('d-none');
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.classList.add('d-none');
+        }, 3000);
+    }
+}
+</script>
+{% endblock %}
+

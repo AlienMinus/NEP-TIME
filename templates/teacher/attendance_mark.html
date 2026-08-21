@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance · {{ course.code }} · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="eyebrow text-uppercase">SUBJECT-WISE ATTENDANCE</span>
+            <h2 class="fw-bold text-dark mb-0">{{ course.code }} · {{ course.name }}</h2>
+            <p class="text-muted small mb-0"><i class="bi bi-people-fill text-leaf me-1"></i>Group: <strong>{{ course.student_group }}</strong> · Sem {{ course.semester }} · {{ course.type|capitalize }}</p>
+        </div>
+        <a class="btn btn-outline-secondary rounded-pill px-4 btn-sm" href="{{ url_for('teacher.dashboard') }}">
+            <i class="bi bi-arrow-left me-1"></i> Back to Teaching Workspace
+        </a>
+    </div>
+
+    <form method="post" id="attendanceForm">
+        <div class="card p-4 border-0 rounded-4 shadow-sm bg-white mb-4">
+            <div class="row align-items-end g-3 mb-4 border-bottom pb-4">
+                <div class="col-md-4 col-lg-3">
+                    <label class="form-label fw-semibold text-muted small"><i class="bi bi-calendar-event me-1"></i>Attendance Date</label>
+                    <input type="date" name="date" value="{{ date }}" class="form-control bg-light fw-bold" onchange="window.location.href='{{ url_for('teacher.mark_attendance', course_id=course._id) }}?date=' + this.value">
+                </div>
+                <div class="col-md-8 col-lg-9 d-flex flex-wrap gap-2 justify-content-md-end">
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" onclick="setAllAttendance('present')">
+                        <i class="bi bi-check-all me-1"></i> Mark All Present
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="setAllAttendance('absent')">
+                        <i class="bi bi-x-circle me-1"></i> Mark All Absent
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3" onclick="setAllAttendance('late')">
+                        <i class="bi bi-clock-history me-1"></i> Mark All Late
+                    </button>
+                </div>
+            </div>
+
+            <!-- Student Roster Table -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="rosterTable">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4" style="width: 50px;">#</th>
+                            <th>Student Name</th>
+                            <th>Regn. Number</th>
+                            <th>Student Email</th>
+                            <th class="text-end pe-4" style="width: 280px;">Attendance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        {% set current_status = existing_status_map.get(s._id|string, 'present') %}
+                        <tr>
+                            <td class="ps-4 text-muted small">{{ loop.index }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-xs rounded-circle bg-leaf text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                        {{ s.name[:1] }}
+                                    </div>
+                                    <strong class="text-dark">{{ s.name }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ s.regn_no or '—' }}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ s.email }}</small>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Status">
+                                    <input type="radio" class="btn-check att-radio" name="student_{{ s._id }}" id="p_{{ s._id }}" value="present" {% if current_status == 'present' %}checked{% endif %}>
+                                    <label class="btn btn-outline-success" for="p_{{ s._id }}"><i class="bi bi-check-lg"></i> Present</label>
+
+                                    <input type="radio" class="btn-check att-radio" name="student_{{ s._id }}" id="l_{{ s._id }}" value="late" {% if current_status == 'late' %}checked{% endif %}>
+                                    <label class="btn btn-outline-warning text-dark" for="l_{{ s._id }}"><i class="bi bi-clock"></i> Late</label>
+
+                                    <input type="radio" class="btn-check att-radio" name="student_{{ s._id }}" id="a_{{ s._id }}" value="absent" {% if current_status == 'absent' %}checked{% endif %}>
+                                    <label class="btn btn-outline-danger" for="a_{{ s._id }}"><i class="bi bi-x-lg"></i> Absent</label>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-people fs-1 text-leaf d-block mb-2"></i>
+                                No students registered under group <strong>{{ course.student_group }}</strong> yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Total Students in Roster: <strong>{{ students|length }}</strong></span>
+                <button type="submit" class="btn btn-leaf rounded-pill px-5 shadow-sm">
+                    <i class="bi bi-floppy-fill me-2"></i> Save Attendance Records
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function setAllAttendance(status) {
+    document.querySelectorAll('.att-radio').forEach(radio => {
+        if (radio.value === status) {
+            radio.checked = true;
+        }
+    });
+}
+</script>
+{% endblock %}
+

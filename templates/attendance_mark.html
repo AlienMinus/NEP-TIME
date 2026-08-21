@@ -1,9 +1,0 @@
-{% extends "base.html" %}{% block title %}Attendance · NEP-TIME{% endblock %}
-{% block content %}<div class="mb-4"><span class="eyebrow">SUBJECT-WISE ATTENDANCE</span><h1>{{course.code}} · {{course.name}}</h1><p class="text-muted">{{course.student_group}}</p></div>
-<form method="post"><div class="card p-4"><div class="row align-items-end mb-3"><div class="col-md-3"><label>Date</label><input name="date" type="date" value="{{date}}" class="form-control"></div></div>
-<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Student</th><th>ID</th><th>Status</th></tr></thead><tbody>
-{% for s in students %}<tr><td>{{s.name}}</td><td>{{s.student_id}}</td><td>
-<div class="btn-group" role="group"><input type="radio" class="btn-check" name="student_{{s._id}}" value="present" id="p{{s._id}}" checked><label class="btn btn-outline-success" for="p{{s._id}}">Present</label>
-<input type="radio" class="btn-check" name="student_{{s._id}}" value="absent" id="a{{s._id}}"><label class="btn btn-outline-danger" for="a{{s._id}}">Absent</label></div>
-</td></tr>{% endfor %}</tbody></table></div><button class="btn btn-leaf">Save Attendance</button></div></form>
-{% endblock %}

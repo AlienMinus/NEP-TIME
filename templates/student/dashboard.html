@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Student Workspace · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Student Header Bar -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                {% if student.avatar %}
+                    <img src="{{ student.avatar }}" class="avatar rounded-circle shadow-xs" style="width: 68px; height: 68px; object-fit: cover;" alt="{{ student.name }}">
+                {% else %}
+                    <div class="rounded-circle bg-leaf text-white d-flex align-items-center justify-content-center fw-bold fs-3" style="width: 68px; height: 68px;">
+                        {{ student.name[:1] }}
+                    </div>
+                {% endif %}
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h3 class="fw-bold text-dark mb-0">Hello, {{ student.name }}</h3>
+                        <span class="badge bg-leaf-subtle text-leaf-dark px-3 py-1 rounded-pill">Semester {{ student.semester }}</span>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-1">
+                        <span><i class="bi bi-card-heading text-leaf me-1"></i><strong>Regn. No:</strong> {{ student.regn_no or 'NOT REGISTERED' }}</span>
+                        <span><i class="bi bi-envelope text-leaf me-1"></i>{{ student.email }}</span>
+                        <span><i class="bi bi-people text-leaf me-1"></i>Group: <strong>{{ student.student_group or 'ECE-6A' }}</strong></span>
+                        <span><i class="bi bi-building text-leaf me-1"></i>{{ student.program or 'ABIT' }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-leaf btn-sm rounded-pill px-3" href="{{ url_for('student.course_selection') }}">
+                    <i class="bi bi-collection-play-fill me-1"></i> Course Selection
+                </a>
+                <a class="btn btn-leaf btn-sm rounded-pill px-3 shadow-xs" href="{{ url_for('student.attendance_view') }}">
+                    <i class="bi bi-pie-chart-fill me-1"></i> Attendance Analytics ({{ att_summary.overall_percent }}%)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personalized Weekly Timetable -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-3 gap-2">
+            <div>
+                <span class="eyebrow text-uppercase">PERSONALIZED GROUP SCHEDULE</span>
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar3 text-leaf me-2"></i>Weekly Timetable — Group {{ student.student_group }}</h5>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-leaf-light text-leaf border px-3 py-2 rounded-pill">
+                    <i class="bi bi-cup-hot me-1"></i> {{ timetable.lunch.label }}
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center timetable-grid mb-0">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th style="width: 120px;" class="bg-light">Day</th>
+                        {% for p_meta in timetable.periods %}
+                        <th>
+                            <div class="fw-bold text-dark">Period {{ p_meta.period }}</div>
+                            <small class="text-muted" style="font-size: 0.72rem;">{{ p_meta.start }} – {{ p_meta.end }}</small>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in timetable.weekly_matrix %}
+                    <tr>
+                        <td class="fw-bold text-dark bg-light text-start ps-3">{{ day.day_name }}</td>
+                        {% for slot in day.slots %}
+                            {% if slot.has_class %}
+                                <td class="p-2 {% if slot.type == 'lab' %}timetable-lab-cell{% else %}timetable-theory-cell{% endif %}">
+                                    <div class="tt-cell-content p-2 rounded-3 text-start">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge {% if slot.type == 'lab' %}bg-warning text-dark{% else %}bg-leaf text-white{% endif %}" style="font-size: 0.65rem;">
+                                                {{ slot.type|upper }}
+                                            </span>
+                                            <span class="badge bg-white text-muted border" style="font-size: 0.65rem;">{{ slot.room }}</span>
+                                        </div>
+                                        <strong class="d-block text-dark small">{{ slot.code }}</strong>
+                                        <span class="text-muted text-truncate d-block small" style="max-width: 130px; font-size: 0.75rem;">{{ slot.name }}</span>
+                                        <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">
+                                            <i class="bi bi-person-fill text-leaf"></i> {{ slot.teacher }}
+                                        </small>
+                                    </div>
+                                </td>
+                            {% else %}
+                                <td class="p-2 text-muted bg-light-subtle">
+                                    <div class="py-3 text-muted small" style="opacity: 0.6;">
+                                        <i class="bi bi-dash-circle"></i> Free / Study
+                                    </div>
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Quick Attendance Summary Banner -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard-data-fill text-leaf me-2"></i>Subject Attendance Status</h5>
+            <a href="{{ url_for('student.attendance_view') }}" class="btn btn-outline-leaf btn-sm rounded-pill px-3">
+                Full Analytics & Charts <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% for s in att_summary.stats %}
+            <div class="col-md-6 col-xl-3">
+                <div class="p-3 rounded-3 border bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-dark small text-truncate" style="max-width: 140px;">{{ s.course_name }}</strong>
+                        <span class="badge {% if s.percent >= 75 %}bg-success{% else %}bg-danger{% endif %}">{{ s.percent }}%</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 6px;">
+                        <div class="progress-bar {% if s.percent >= 75 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ s.percent }}%;"></div>
+                    </div>
+                    <small class="text-muted d-block" style="font-size: 0.72rem;">{{ s.present }} Present / {{ s.total }} Total Classes</small>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-3 text-muted small">
+                No attendance recorded for your profile yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+{% block title %}Course Selection (Drag & Drop) · NEP-TIME ABIT{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="eyebrow text-uppercase">NEP 2020 COURSE ENROLLMENT</span>
+            <h2 class="fw-bold text-dark mb-0">Drag & Drop Course Selection</h2>
+            <p class="text-muted small mb-0">Drag courses from the available pool into the Theory (Max {{ max_theory }}) and Lab (Max {{ max_lab }}) drop zones.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-leaf rounded-pill px-4 shadow-sm" onclick="saveEnrollment()">
+                <i class="bi bi-floppy-fill me-2"></i> Save Course Enrollment
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="enrollToast" class="alert alert-success alert-dismissible fade d-none mb-3 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> <span id="enrollToastMsg">Courses saved successfully.</span>
+        <button type="button" class="btn-close" onclick="this.parentElement.classList.add('d-none')"></button>
+    </div>
+
+    <!-- Two Drop Zones Row -->
+    <div class="row g-4 mb-4">
+        <!-- Theory Drop Zone -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-leaf-subtle text-leaf p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-book-half"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Selected Theory Courses</h5>
+                            <small class="text-muted">Maximum {{ max_theory }} Theory courses allowed</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-leaf-light text-leaf border px-3 py-2 rounded-pill fw-bold" id="theoryBadge">
+                        <span id="theoryCount">0</span> / {{ max_theory }} Selected
+                    </span>
+                </div>
+
+                <div id="theoryDropZone" class="p-3 rounded-4 border-dashed bg-light-subtle d-flex flex-column gap-2 flex-grow-1 min-h-160 transition">
+                    <div class="drop-placeholder text-muted small py-4 text-center" id="theoryPlaceholder">
+                        <i class="bi bi-arrow-down-circle text-leaf fs-4 d-block mb-1"></i>
+                        Drag Theory courses here (Max {{ max_theory }})
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lab Drop Zone -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-cpu-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Selected Lab Courses</h5>
+                            <small class="text-muted">Maximum {{ max_lab }} Lab courses allowed</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-warning-subtle text-dark border px-3 py-2 rounded-pill fw-bold" id="labBadge">
+                        <span id="labCount">0</span> / {{ max_lab }} Selected
+                    </span>
+                </div>
+
+                <div id="labDropZone" class="p-3 rounded-4 border-dashed bg-light-subtle d-flex flex-column gap-2 flex-grow-1 min-h-160 transition">
+                    <div class="drop-placeholder text-muted small py-4 text-center" id="labPlaceholder">
+                        <i class="bi bi-arrow-down-circle text-warning fs-4 d-block mb-1"></i>
+                        Drag Lab courses here (Max {{ max_lab }})
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Courses Pool -->
+    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+            <div>
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-collection-fill text-leaf me-2"></i>Available Courses Pool</h5>
+                <small class="text-muted">Drag cards into their respective Theory or Lab drop zones above</small>
+            </div>
+            <input type="text" id="coursePoolSearch" class="form-control form-control-sm w-auto bg-light" placeholder="Search pool...">
+        </div>
+
+        <div class="row g-3" id="availablePoolContainer">
+            {% for c in available_courses %}
+            <div class="col-md-6 col-xl-4 course-pool-item" id="pool-item-{{ c._id }}">
+                <div class="card p-3 border rounded-3 bg-light course-drag-card cursor-grab shadow-xs h-100"
+                     draggable="true"
+                     data-id="{{ c._id }}"
+                     data-code="{{ c.code }}"
+                     data-name="{{ c.name }}"
+                     data-type="{{ c.type|default('theory') }}"
+                     data-category="{{ c.category|default('Major') }}"
+                     data-lab-duration="{{ c.lab_duration|default(2) }}"
+                     id="course-drag-{{ c._id }}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge {% if c.type == 'lab' %}bg-warning text-dark{% else %}bg-leaf text-white{% endif %} small">
+                            {{ c.type|upper }} {% if c.type == 'lab' %}({{ c.lab_duration|default(2) }}P){% endif %}
+                        </span>
+                        <span class="badge bg-white text-muted border small">{{ c.category }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-grip-vertical text-muted fs-5"></i>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <strong class="text-dark d-block small">{{ c.code }}</strong>
+                            <span class="text-muted text-truncate d-block small">{{ c.name }}</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center text-muted small" style="font-size: 0.72rem;">
+                        <span><i class="bi bi-clock me-1"></i>{{ c.sessions_per_week }} slots/wk</span>
+                        <span>Sem {{ c.semester }} · {{ c.student_group }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+const MAX_THEORY = {{ max_theory }};
+const MAX_LAB = {{ max_lab }};
+let selectedTheory = {{ enrolled_theory_ids|tojson }};
+let selectedLab = {{ enrolled_lab_ids|tojson }};
+
+// Map of all available courses
+const coursesMap = {
+    {% for c in available_courses %}
+    "{{ c._id }}": {
+        id: "{{ c._id }}",
+        code: "{{ c.code }}",
+        name: "{{ c.name }}",
+        type: "{{ c.type|default('theory') }}",
+        category: "{{ c.category|default('Major') }}",
+        labDuration: {{ c.lab_duration|default(2) }}
+    },
+    {% endfor %}
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initDragAndDrop();
+    renderSelectedCourses();
+
+    // Pool search filter
+    document.getElementById('coursePoolSearch')?.addEventListener('keyup', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.course-pool-item').forEach(item => {
+            item.style.display = item.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+});
+
+function initDragAndDrop() {
+    const dragCards = document.querySelectorAll('.course-drag-card');
+    const theoryZone = document.getElementById('theoryDropZone');
+    const labZone = document.getElementById('labDropZone');
+
+    dragCards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', card.dataset.id);
+            card.classList.add('opacity-50');
+        });
+
+        card.addEventListener('dragend', () => {
+            card.classList.remove('opacity-50');
+        });
+    });
+
+    // Theory Zone Drop
+    theoryZone.addEventListener('dragover', (e) => { e.preventDefault(); theoryZone.classList.add('drop-active'); });
+    theoryZone.addEventListener('dragleave', () => { theoryZone.classList.remove('drop-active'); });
+    theoryZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        theoryZone.classList.remove('drop-active');
+        const id = e.dataTransfer.getData('text/plain');
+        const course = coursesMap[id];
+        if (!course) return;
+
+        if (course.type === 'lab') {
+            alert(`"${course.code}" is a Lab course. Please drop it into the Selected Lab Courses zone.`);
+            return;
+        }
+
+        if (selectedTheory.includes(id)) return;
+
+        if (selectedTheory.length >= MAX_THEORY) {
+            alert(`You can select at most ${MAX_THEORY} Theory courses.`);
+            return;
+        }
+
+        selectedTheory.push(id);
+        renderSelectedCourses();
+    });
+
+    // Lab Zone Drop
+    labZone.addEventListener('dragover', (e) => { e.preventDefault(); labZone.classList.add('drop-active'); });
+    labZone.addEventListener('dragleave', () => { labZone.classList.remove('drop-active'); });
+    labZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        labZone.classList.remove('drop-active');
+        const id = e.dataTransfer.getData('text/plain');
+        const course = coursesMap[id];
+        if (!course) return;
+
+        if (course.type !== 'lab') {
+            alert(`"${course.code}" is a Theory course. Please drop it into the Selected Theory Courses zone.`);
+            return;
+        }
+
+        if (selectedLab.includes(id)) return;
+
+        if (selectedLab.length >= MAX_LAB) {
+            alert(`You can select at most ${MAX_LAB} Lab courses.`);
+            return;
+        }
+
+        selectedLab.push(id);
+        renderSelectedCourses();
+    });
+}
+
+function removeTheory(id) {
+    selectedTheory = selectedTheory.filter(x => x !== id);
+    renderSelectedCourses();
+}
+
+function removeLab(id) {
+    selectedLab = selectedLab.filter(x => x !== id);
+    renderSelectedCourses();
+}
+
+function renderSelectedCourses() {
+    const theoryZone = document.getElementById('theoryDropZone');
+    const labZone = document.getElementById('labDropZone');
+    const theoryCountSpan = document.getElementById('theoryCount');
+    const labCountSpan = document.getElementById('labCount');
+
+    theoryCountSpan.innerText = selectedTheory.length;
+    labCountSpan.innerText = selectedLab.length;
+
+    // Render Theory items
+    if (selectedTheory.length === 0) {
+        theoryZone.innerHTML = `
+            <div class="drop-placeholder text-muted small py-4 text-center" id="theoryPlaceholder">
+                <i class="bi bi-arrow-down-circle text-leaf fs-4 d-block mb-1"></i>
+                Drag Theory courses here (Max ${MAX_THEORY})
+            </div>
+        `;
+    } else {
+        theoryZone.innerHTML = selectedTheory.map(id => {
+            const c = coursesMap[id] || { code: id, name: 'Theory Course', category: 'Major' };
+            return `
+                <div class="p-2 px-3 rounded-3 bg-white border d-flex justify-content-between align-items-center shadow-xs">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <span class="badge bg-leaf text-white small">THEORY</span>
+                        <strong class="text-dark small">${c.code}</strong>
+                        <span class="text-muted text-truncate small">${c.name}</span>
+                    </div>
+                    <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2 text-decoration-none" onclick="removeTheory('${id}')">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Render Lab items
+    if (selectedLab.length === 0) {
+        labZone.innerHTML = `
+            <div class="drop-placeholder text-muted small py-4 text-center" id="labPlaceholder">
+                <i class="bi bi-arrow-down-circle text-warning fs-4 d-block mb-1"></i>
+                Drag Lab courses here (Max ${MAX_LAB})
+            </div>
+        `;
+    } else {
+        labZone.innerHTML = selectedLab.map(id => {
+            const c = coursesMap[id] || { code: id, name: 'Lab Course', category: 'Major' };
+            return `
+                <div class="p-2 px-3 rounded-3 bg-white border d-flex justify-content-between align-items-center shadow-xs">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <span class="badge bg-warning text-dark small">LAB (${c.labDuration || 2}P)</span>
+                        <strong class="text-dark small">${c.code}</strong>
+                        <span class="text-muted text-truncate small">${c.name}</span>
+                    </div>
+                    <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2 text-decoration-none" onclick="removeLab('${id}')">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Hide already selected cards from available pool
+    Object.keys(coursesMap).forEach(id => {
+        const poolItem = document.getElementById(`pool-item-${id}`);
+        if (poolItem) {
+            if (selectedTheory.includes(id) || selectedLab.includes(id)) {
+                poolItem.classList.add('opacity-40');
+            } else {
+                poolItem.classList.remove('opacity-40');
+            }
+        }
+    });
+}
+
+async function saveEnrollment() {
+    try {
+        const res = await fetch('{{ url_for("api.enroll_courses") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                theory_courses: selectedTheory,
+                lab_courses: selectedLab
+            })
+        });
+        const result = await res.json();
+
+        const toast = document.getElementById('enrollToast');
+        const toastMsg = document.getElementById('enrollToastMsg');
+        if (toast && toastMsg) {
+            toastMsg.innerText = result.message;
+            toast.className = `alert alert-${result.success ? 'success' : 'danger'} alert-dismissible fade show mb-3 shadow-sm`;
+            toast.classList.remove('d-none');
+            setTimeout(() => {
+                toast.classList.add('d-none');
+            }, 3500);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Network error while saving course enrollment.');
+    }
+}
+</script>
+{% endblock %}
+

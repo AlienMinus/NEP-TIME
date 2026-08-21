@@ -1,43 +1,158 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}NEP-TIME · ABIT{% endblock %}</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="{{url_for('static',filename='style.css')}}" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}NEP-TIME · ABIT{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
-<div class="container-fluid">
-<a class="navbar-brand fw-bold text-leaf" href="{{url_for('dashboard')}}">NEP-TIME <span>ABIT</span></a>
-<button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
-<div class="collapse navbar-collapse" id="nav">
-<ul class="navbar-nav me-auto">
-{% if session.get('user_id') %}
-<li class="nav-item"><a class="nav-link" href="{{url_for('dashboard')}}">Dashboard</a></li>
-{% if session.get('role')=='student' %}
-<li class="nav-item"><a class="nav-link" href="{{url_for('student_attendance')}}">Attendance</a></li>
-{% elif session.get('role')=='teacher' %}
-<li class="nav-item"><a class="nav-link" href="{{url_for('teacher_dashboard')}}">Teaching</a></li>
-{% endif %}
-<li class="nav-item"><a class="nav-link" href="{{url_for('profile')}}">Profile</a></li>
-{% endif %}
-</ul>
-{% if session.get('user_id') %}
-<span class="me-3 small text-muted">{{session.get('name')}} · {{session.get('role')|capitalize}}</span>
-<a class="btn btn-outline-danger btn-sm" href="{{url_for('logout')}}">Logout</a>
-{% else %}
-<a class="btn btn-leaf btn-sm" href="{{url_for('login')}}">Login</a>
-{% endif %}
-</div></div></nav>
-<main class="container-fluid px-lg-5 py-4">
-{% with messages=get_flashed_messages(with_categories=true) %}{% for c,m in messages %}
-<div class="alert alert-{{c}} alert-dismissible fade show">{{m}}<button class="btn-close" data-bs-dismiss="alert"></button></div>
-{% endfor %}{% endwith %}
-{% block content %}{% endblock %}
-</main>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{url_for('static',filename='app.js')}}"></script>
-</body></html>
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top main-navbar">
+        <div class="container-fluid px-lg-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('auth.dashboard_redirect') if session.get('user_id') else url_for('auth.index') }}">
+                <div class="brand-logo">
+                    <i class="bi bi-leaf-fill"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="fw-bold brand-title">NEP-TIME</span>
+                    <span class="brand-subtitle">ABIT</span>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-lg-1">
+                    {% if session.get('user_id') %}
+                        <!-- Admin Navigation -->
+                        {% if session.get('role') == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+                                    <i class="bi bi-grid-1x2-fill me-1"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'admin.subjects' %}active{% endif %}" href="{{ url_for('admin.subjects') }}">
+                                    <i class="bi bi-journal-text me-1"></i> Subject Config
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'admin.faculty_assign' %}active{% endif %}" href="{{ url_for('admin.faculty_assign') }}">
+                                    <i class="bi bi-person-check-fill me-1"></i> Assign Faculty
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'admin.timetable_view' %}active{% endif %}" href="{{ url_for('admin.timetable_view') }}">
+                                    <i class="bi bi-calendar3 me-1"></i> Timetable
+                                </a>
+                            </li>
+                        <!-- Teacher Navigation -->
+                        {% elif session.get('role') == 'teacher' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'teacher.dashboard' %}active{% endif %}" href="{{ url_for('teacher.dashboard') }}">
+                                    <i class="bi bi-calendar2-week-fill me-1"></i> Teaching & Leisure
+                                </a>
+                            </li>
+                        <!-- Student Navigation -->
+                        {% elif session.get('role') == 'student' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}" href="{{ url_for('student.dashboard') }}">
+                                    <i class="bi bi-calendar3 me-1"></i> My Timetable
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'student.course_selection' %}active{% endif %}" href="{{ url_for('student.course_selection') }}">
+                                    <i class="bi bi-collection-play-fill me-1"></i> Course Selection
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'student.attendance_view' %}active{% endif %}" href="{{ url_for('student.attendance_view') }}">
+                                    <i class="bi bi-pie-chart-fill me-1"></i> Attendance Analytics
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'profile.view_profile' %}active{% endif %}" href="{{ url_for('profile.view_profile') }}">
+                                <i class="bi bi-person-circle me-1"></i> Profile
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    {% if session.get('user_id') %}
+                        <div class="user-pill d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-leaf-light border">
+                            {% if session.get('avatar') %}
+                                <img src="{{ session.get('avatar') }}" class="rounded-circle user-avatar-sm" alt="Avatar">
+                            {% else %}
+                                <div class="user-avatar-sm rounded-circle bg-leaf text-white d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            {% endif %}
+                            <div class="user-info-text d-none d-sm-block">
+                                <span class="fw-semibold d-block text-dark lh-1 small">{{ session.get('name', 'User') }}</span>
+                                <span class="badge bg-leaf-subtle text-leaf-dark border-0 p-0 text-uppercase user-role-badge">
+                                    {{ session.get('role') }}
+                                    {% if session.get('regn_no') %}· {{ session.get('regn_no') }}{% elif session.get('employee_id') %}· {{ session.get('employee_id') }}{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <a class="btn btn-outline-danger btn-sm rounded-pill px-3" href="{{ url_for('auth.logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    {% else %}
+                        <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="{{ url_for('auth.login') }}">Sign In</a>
+                        <a class="btn btn-leaf btn-sm rounded-pill px-3 shadow-sm" href="{{ url_for('auth.register') }}">Create Profile</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Notifications -->
+    <div class="container-fluid px-lg-4 mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm rounded-3" role="alert">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        {% elif category == 'danger' or category == 'error' %}
+                            <i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>
+                        {% elif category == 'warning' %}
+                            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="container-fluid px-lg-4 py-3 mb-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom Application JS -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
