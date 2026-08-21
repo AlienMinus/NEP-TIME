@@ -27,12 +27,8 @@ body {
 .brand-logo {
     width: 36px;
     height: 36px;
-    background: var(--leaf-primary);
-    color: #fff;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    font-size: 1.2rem;
+    object-fit: contain;
+    border-radius: 8px;
 }
 .brand-title {
     color: var(--leaf-primary);
@@ -126,12 +122,8 @@ body {
 .logo-mark {
     width: 52px;
     height: 52px;
-    background: var(--leaf-primary);
-    color: #fff;
-    border-radius: 14px;
     display: grid;
     place-items: center;
-    font-size: 1.6rem;
     margin: 0 auto;
 }
 .role-toggle-group {

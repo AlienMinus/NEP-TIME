@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}NEP-TIME · ABIT{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,9 +22,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top main-navbar">
         <div class="container-fluid px-lg-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('auth.dashboard_redirect') if session.get('user_id') else url_for('auth.index') }}">
-                <div class="brand-logo">
-                    <i class="bi bi-leaf-fill"></i>
-                </div>
+                <img src="{{ url_for('static', filename='favicon.png') }}" class="brand-logo" alt="NEP-TIME Logo">
                 <div class="brand-text">
                     <span class="fw-bold brand-title">NEP-TIME</span>
                     <span class="brand-subtitle">ABIT</span>

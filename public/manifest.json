@@ -1,0 +1,26 @@
+{
+  "short_name": "SAGAR2027",
+  "name": "International Conference on Soft Computing Application in Smart Grid and Renewable Energy 2027",
+  "description": "The 1st International Conference on Soft Computing Application in Smart grid and Renewable Energy (SAGAR2027) will be held on February 26-27 at ABIT Campus jointly by the Electrical Engineering and Electrical and Computer Engineering of ABIT.",
+  "icons": [
+    {
+      "src": "appicon.jpeg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "appicon.jpeg",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "appicon.jpeg",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff"
+}
