@@ -76,3 +76,47 @@ This project is a development-ready foundation, not a security audit.
 Before public deployment add CSRF protection, rate limiting, secure cookies,
 password hashing with Argon2/bcrypt, audit logs, strict upload validation,
 Google account role approval, and HTTPS-only cookies.
+
+## Folder Struture
+
+NEP-TIME-ABIT-Flask-MongoDB-Cloudinary-OAuth/
+├── app.py
+├── config.py
+├── database.py
+├── run.py
+├── requirements.txt
+├── routes/
+│   ├── admin_routes.py
+│   ├── api_routes.py
+│   ├── auth_routes.py
+│   ├── profile_routes.py
+│   ├── student_routes.py
+│   └── teacher_routes.py
+├── services/
+│   ├── attendance_service.py
+│   ├── auth_service.py
+│   ├── course_service.py
+│   └── timetable_service.py
+├── static/
+│   ├── app.js
+│   └── style.css
+└── templates/
+    ├── admin/
+    │   ├── dashboard.html
+    │   ├── faculty_assign.html
+    │   ├── subject_edit.html
+    │   ├── subjects.html
+    │   └── timetable.html
+    ├── teacher/
+    │   ├── attendance_mark.html
+    │   └── dashboard.html
+    ├── student/
+    │   ├── attendance.html
+    │   ├── course_select.html
+    │   └── dashboard.html
+    ├── base.html
+    ├── landing.html
+    ├── login.html
+    ├── profile.html
+    ├── register.html
+    └── verify.html
